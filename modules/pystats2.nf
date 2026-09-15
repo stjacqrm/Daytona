@@ -89,6 +89,19 @@ process pystats2 {
         if qc_flag == '':
             qc_flag = qc_flag + 'PASS'
     print(qc_flag)
+
+    #Copy all assemblies
+    subprocess.run('mkdir -p '+"${params.output}"+"/"+'assemblies_total', shell=True, check=True)
+    subprocess.run('cp ' + "${params.output}"+"/"+"${x}"+"/" + "${x}" + '.consensus.fa '+"${params.output}"+"/"+'assemblies_total', shell=True, check=True)
+
+    #Run pangolin
+    #subprocess.run('singularity exec -B '+"${params.output}"+"/"+"${x}"+':/data ' + "${params.pangolin_docker}" + ' pangolin /data/' + "${x}" + '.consensus.fa -o '+"${params.output}"+"/"+"${x}", shell=True, check=True)
+    subprocess.run('singularity exec -B '+"${params.output}"+"/"+"${x}"+':/data ' + "${params.pangolin_docker}" + ' pangolin /data/' + "${x}" + '.consensus.fa -o /data', shell=True, check=True)
+
+    #Get lineage
+    proc = subprocess.run('tail -n 1 '+"${params.output}"+"/"+"${x}"+'/lineage_report.csv | cut -d \',\' -f 2', shell=True, check=True, capture_output=True, text=True)
+    lineage = proc.stdout.rstrip()
+    print(lineage)
     
     #Copy passing assemblies to assemblies folder and vcf files to variants folder
     if qc_flag == 'PASS':
@@ -118,14 +131,6 @@ process pystats2 {
             subprocess.run('cp ' + "${params.output}"+"/"+"${x}"+"/" + 'vadr_results/vadr_results.vadr.alt.list '+ "${params.output}"+"/"+'vadr_error_reports_clearlabs/'+ "${x}" + '.vadr.alt.list', shell=True, check=True)
             #subprocess.run('mv '+ "${params.output}"+"/"+'vadr_error_reports_clearlabs/vadr_results.vadr.alt.list '+"${params.output}"+"/"+'vadr_error_reports_clearlabs/' + "${x}" + '.vadr.alt.list', shell=True, check=True)
 
-        #Run pangolin
-        #subprocess.run('singularity exec -B '+"${params.output}"+"/"+"${x}"+':/data ' + "${params.pangolin_docker}" + ' pangolin /data/' + "${x}" + '.consensus.fa -o '+"${params.output}"+"/"+"${x}", shell=True, check=True)
-        subprocess.run('singularity exec -B '+"${params.output}"+"/"+"${x}"+':/data ' + "${params.pangolin_docker}" + ' pangolin /data/' + "${x}" + '.consensus.fa -o /data', shell=True, check=True)
-       
-        #Get lineage
-        proc = subprocess.run('tail -n 1 '+"${params.output}"+"/"+"${x}"+'/lineage_report.csv | cut -d \',\' -f 2', shell=True, check=True, capture_output=True, text=True)
-        lineage = proc.stdout.rstrip()
-        print(lineage)
 
         #Run nextclade
         subprocess.run('singularity exec -B '+"${params.output}"+"/"+"${x}"+':/data ' + "${params.nextclade_docker}" + ' nextclade --input-fasta /data/' + "${x}" + '.consensus.fa --output-csv /data/' + 'nextclade_report.csv', shell=True, check=True)
@@ -144,7 +149,7 @@ process pystats2 {
             sotc_out = (',').join(sotc)
     else:
         vadr_flag = 'NA'
-        lineage = 'NA'
+        #lineage = 'NA'
         sotc_out = 'NA'
     
     pangolin = "${params.pangolin_version}"+'_pdata-'+"${params.pangolin_data_version}"

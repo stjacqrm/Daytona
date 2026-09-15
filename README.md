@@ -63,7 +63,7 @@ $ sudo make -C ./builddir install
 6. Install the Code
 
 ```
-$ git clone https://github.com/stjacqrm/Daytona.git
+$ git clone https://github.com/VADGS/Daytona.git
 ```
 
 Set to path in bashrc:
